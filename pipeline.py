@@ -57,7 +57,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20150426.02"
+VERSION = "20150427.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'baraza'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -197,15 +197,7 @@ class WgetArgs(object):
         assert item_type in ('labelen')
         
         if item_type == 'labelen':
-            wget_args.append('http://www.google.com/baraza/en/label?clk=lftpn&lid={0}&tab=wtmtol'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?lid={0}&clk=lftpn&tab=wtmtol'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?lid={0}&clk=lftpn'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?clk=lftpn&tab=wtmtol&lid={0}'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?lid={0}&tab=wtmtol'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?clk=lftpn&lid={0}'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?tab=wtmtol&lid={0}&clk=lftpn'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?tab=wtmtol&clk=lftpn&lid={0}'.format(item_value))
-            wget_args.append('http://www.google.com/baraza/en/label?tab=wtmtol&lid={0}'.format(item_value))
+            wget_args.append('http://www.google.com/baraza/en/label?lid={0}'.format(item_value))
         else:
             raise Exception('Unknown item')
         
