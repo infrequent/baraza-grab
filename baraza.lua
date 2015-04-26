@@ -9,6 +9,8 @@ local item_value = os.getenv('item_value')
 local downloaded = {}
 local addedtolist = {}
 
+local ids = {}
+
 read_file = function(file)
   if file then
     local f = assert(io.open(file))
@@ -29,7 +31,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   end
   
   if item_type == "labelen" and (downloaded[url] ~= true or addedtolist[url] ~= true) then
-    if string.match(url, item_value) or html == 0 then
+    if (string.match(url, item_value) or html == 0) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?")) then
       addedtolist[url] = true
       return true
     else
@@ -44,7 +46,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   local html = nil
   
   local function check(url, origurl)
-    if (downloaded[url] ~= true and addedtolist[url] ~= true) then
+    if (downloaded[url] ~= true and addedtolist[url] ~= true) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?")) then
       if string.match(url, "&amp;") then
         table.insert(urls, { url=string.gsub(url, "&amp;", "&") })
         addedtolist[url] = true
@@ -53,20 +55,32 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         table.insert(urls, { url=url })
         addedtolist[url] = true
       end
+      if string.match(url, "/thread%?tid=[a-z0-9]+") then
+        if ids[string.match(url, "/thread%?tid=([a-z0-9]+)")] ~= true then
+          ids[string.match(url, "/thread%?tid=([a-z0-9]+)")] = true
+          check("http://www.google.com/baraza/en/thread?tid="..string.match(url, "/thread%?tid=([a-z0-9]+)"))
+        end
+      end
     end
+  end
+
+  if not ids[item_value] == true then
+    ids[item_value] = true
   end
   
   if item_type == "labelen" then
-    if string.match(url, item_value) then
-      html = read_file(file)
-      for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
-        if string.match(newurl, item_value) then
-          check(newurl)
+    for id in string.gmatch(url, "=([a-z0-9]+)") do
+      if ids[id] == true then
+        html = read_file(file)
+        for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
+          if string.match(newurl, item_value) or string.match(newurl, id) then
+            check(newurl)
+          end
         end
-      end
-      for newurl in string.gmatch(html, '"(/[^"]+"') do
-        if string.match(newurl, item_value) then
-          check("http://www.google.com"..newurl)
+        for newurl in string.gmatch(html, '"(/[^"]+)"') do
+          if string.match(newurl, item_value) or string.match(newurl, id) then
+            check("http://www.google.com"..newurl)
+          end
         end
       end
     end
