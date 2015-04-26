@@ -31,7 +31,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   end
   
   if item_type == "labelen" and (downloaded[url] ~= true or addedtolist[url] ~= true) then
-    if (string.match(url, item_value) or html == 0) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?")) then
+    if (string.match(url, item_value) or html == 0) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or string.match(url, "/thread%?tid=")) then
       addedtolist[url] = true
       return true
     else
@@ -46,41 +46,33 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   local html = nil
   
   local function check(url, origurl)
-    if (downloaded[url] ~= true and addedtolist[url] ~= true) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?")) then
+    if (downloaded[url] ~= true and addedtolist[url] ~= true) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or string.match(url, "/thread%?tid=")) then
       if string.match(url, "&amp;") then
         table.insert(urls, { url=string.gsub(url, "&amp;", "&") })
         addedtolist[url] = true
         addedtolist[string.gsub(url, "&amp;", "&")] = true
+      elseif string.match(url, "//") then
+        table.insert(urls, { url=string.gsub(url, "//", "/") })
+        addedtolist[url] = true
+        check(string.gsub(url, "//", "/"))
       else
         table.insert(urls, { url=url })
         addedtolist[url] = true
       end
-      if string.match(url, "/thread%?tid=[a-z0-9]+") then
-        if ids[string.match(url, "/thread%?tid=([a-z0-9]+)")] ~= true then
-          ids[string.match(url, "/thread%?tid=([a-z0-9]+)")] = true
-          check("http://www.google.com/baraza/en/thread?tid="..string.match(url, "/thread%?tid=([a-z0-9]+)"))
-        end
-      end
     end
-  end
-
-  if not ids[item_value] == true then
-    ids[item_value] = true
   end
   
   if item_type == "labelen" then
-    for id in string.gmatch(url, "=([a-z0-9]+)") do
-      if ids[id] == true then
-        html = read_file(file)
-        for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
-          if string.match(newurl, item_value) or string.match(newurl, id) then
-            check(newurl)
-          end
+    if string.match(url, item_value) then
+      html = read_file(file)
+      for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
+        if string.match(newurl, item_value) then
+          check(newurl)
         end
-        for newurl in string.gmatch(html, '"(/[^"]+)"') do
-          if string.match(newurl, item_value) or string.match(newurl, id) then
-            check("http://www.google.com"..newurl)
-          end
+      end
+      for newurl in string.gmatch(html, '"(/[^"]+)"') do
+        if string.match(newurl, item_value) then
+          check("http://www.google.com"..newurl)
         end
       end
     end
@@ -147,9 +139,13 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   tries = 0
 
-  -- We're okay; sleep a bit (if we have to) and continue
-  -- local sleep_time = 0.5 * (math.random(75, 100) / 100.0)
   local sleep_time = 0
+
+  -- We're okay; sleep a bit (if we have to) and continue
+  if not (string.match(url["url"], "https?://[^%.]+%.googleusercontent%.com") or string.match(url["url"], "/photos/")) then
+    local sleep_time = math.random(4, 8)
+  end
+  -- local sleep_time = 0
 
   --  if string.match(url["host"], "cdn") or string.match(url["host"], "media") then
   --    -- We should be able to go fast on images since that's what a web browser does
