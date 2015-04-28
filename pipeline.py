@@ -57,7 +57,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20150427.01"
+VERSION = "20150428.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'baraza'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -194,10 +194,26 @@ class WgetArgs(object):
         item['item_type'] = item_type
         item['item_value'] = item_value
         
-        assert item_type in ('labelen')
+        assert item_type in ('labelen', 'labelfr', 'labelru', 'threaden', 'threadfr', 'threadru', 'useren', 'userfr', 'userru')
         
         if item_type == 'labelen':
             wget_args.append('http://www.google.com/baraza/en/label?lid={0}'.format(item_value))
+        elif item_type == 'labelfr':
+            wget_args.append('http://www.google.com/baraza/fr/label?lid={0}'.format(item_value))
+        elif item_type == 'labelru':
+            wget_args.append('http://otvety.google.ru/otvety/label?lid={0}'.format(item_value))
+        elif item_type == 'threaden':
+            wget_args.append('http://www.google.com/baraza/en/thread?tid={0}'.format(item_value))
+        elif item_type == 'threadfr':
+            wget_args.append('http://www.google.com/baraza/fr/thread?tid={0}'.format(item_value))
+        elif item_type == 'threadru':
+            wget_args.append('http://otvety.google.ru/otvety/thread?tid={0}'.format(item_value))
+        elif item_type == 'useren':
+            wget_args.append('http://www.google.com/baraza/en/user?userid={0}'.format(item_value))
+        elif item_type == 'userfr':
+            wget_args.append('http://www.google.com/baraza/fr/user?userid={0}'.format(item_value))
+        elif item_type == 'userru':
+            wget_args.append('http://otvety.google.ru/otvety/user?userid={0}'.format(item_value))
         else:
             raise Exception('Unknown item')
         
