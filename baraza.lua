@@ -30,8 +30,8 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
     return false
   end
   
-  if item_type == "labelen" and (downloaded[url] ~= true or addedtolist[url] ~= true) then
-    if (string.match(url, item_value) or html == 0) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or string.match(url, "/thread%?tid=")) then
+  if (downloaded[url] ~= true or addedtolist[url] ~= true) then
+    if (string.match(url, item_value) or html == 0) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or ((item_type == "labelen" or item_type == "labelfr" or item_type == "labelru" or item_type == "useren" or item_type == "userfr" or item_type == "userru") and string.match(url, "/thread%?tid="))) then
       addedtolist[url] = true
       return true
     else
@@ -46,7 +46,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   local html = nil
   
   local function check(url, origurl)
-    if (downloaded[url] ~= true and addedtolist[url] ~= true) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or string.match(url, "/thread%?tid=")) then
+    if (downloaded[url] ~= true and addedtolist[url] ~= true) and not (string.match(url, "accounts%.google%.com") or string.match(url, "google%.com/accounts/") or string.match(url, "loginredirect%?") or ((item_type == "labelen" or item_type == "labelfr" or item_type == "labelru" or item_type == "useren" or item_type == "userfr" or item_type == "userru") and string.match(url, "/thread%?tid="))) then
       if string.match(url, "&amp;") then
         table.insert(urls, { url=string.gsub(url, "&amp;", "&") })
         addedtolist[url] = true
@@ -62,22 +62,25 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
   end
   
-  if item_type == "labelen" then
-    if string.match(url, item_value) then
-      html = read_file(file)
-      for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
-        if string.match(newurl, item_value) then
-          check(newurl)
-        end
+  if string.match(url, item_value) then
+    html = read_file(file)
+    for newurl in string.gmatch(html, '"(https?://[^"]+)"') do
+      if string.match(newurl, item_value) then
+        check(newurl)
       end
-      for newurl in string.gmatch(html, '"(/[^"]+)"') do
-        if string.match(newurl, item_value) then
-          check("http://www.google.com"..newurl)
-        end
+    end
+    for newurl in string.gmatch(html, '>(https?://[^<]+)<') do
+      if string.match(newurl, item_value) then
+        check(newurl)
+      end
+    end
+    for newurl in string.gmatch(html, '"(/[^"]+)"') do
+      if string.match(newurl, item_value) and not (string.match(newurl, "")) then
+        check("http://www.google.com"..newurl)
       end
     end
   end
-
+  
   return urls
 end
   
@@ -143,7 +146,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
 
   -- We're okay; sleep a bit (if we have to) and continue
   if not (string.match(url["url"], "https?://[^%.]+%.googleusercontent%.com") or string.match(url["url"], "/photos/")) then
-    local sleep_time = math.random(4, 8)
+    local sleep_time = math.random(2, 4)
   end
   -- local sleep_time = 0
 
